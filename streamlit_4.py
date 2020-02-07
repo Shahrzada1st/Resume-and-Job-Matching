@@ -20,7 +20,7 @@ body = response['Body'].read()
 
 @st.cache
 def get_model():
-        model = pickle.loads(body)
+    model = pickle.loads(body)
     return model
 
 model = get_model()
