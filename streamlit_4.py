@@ -4,8 +4,8 @@ import boto3.session
 
 
 cred = boto3.Session().get_credentials()
-ACCESS_KEY = cred.AKIAW25YCEHW7O7XV3AO
-SECRET_KEY = cred.rdHU1lLMKsbtkoTmt4pjOPyZ25z/AdRTmIPHyIV6
+ACCESS_KEY = "AKIAW25YCEHW7O7XV3AO"
+SECRET_KEY = "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"
 
 s3client = boto3.client('s3',
                         aws_access_key_id = ACCESS_KEY,
