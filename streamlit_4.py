@@ -4,14 +4,7 @@ import boto3.session
 import botocore
 import streamlit as st
 
-# cred = boto3.Session().get_credentials()
-# ACCESS_KEY = cred."AKIAW25YCEHW7O7XV3AO"
-# SECRET_KEY = cred."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"
-#
-# s3client = boto3.client('s3',
-#                         aws_access_key_id = ACCESS_KEY,
-#                         aws_secret_access_key = SECRET_KEY
-#                        )
+
 bucket_name = 'resume-and-job-bucket'
 Key='GoogleNews.pkl'
 s3 = boto3.resource("s3")
