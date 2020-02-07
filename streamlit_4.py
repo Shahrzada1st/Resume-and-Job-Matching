@@ -6,22 +6,30 @@ import streamlit as st
 
 
 bucket_name = 'resume-and-job-bucket'
-Key='GoogleNews.pkl'
+key_name='GoogleNews.pkl'
 s3 = boto3.resource("s3")
 #response = s3client.get_object(Bucket='resume-and-job-bucket',
 #            Key='https://s3.console.aws.amazon.com/s3/buckets/resume-and-job-bucket/GoogleNews.pkl')
 
 #body = response['Body'].read()
 
-body = pickle.loads(s3.Bucket(bucket_name).Object(Key).get()['Body'].read())
-print(body)
-
 @st.cache
-def get_model():
-    model = pickle.loads(body)
-    return model
+def load_pkl_s3():
+    response = s3.get_object(Bucket=bucket_name, Key=key_name)
+    body = response['Body'].read()
+    return pickle.loads(body)
 
-model = get_model()
+model = load_pkl_s3()
+
+#body = pickle.loads(s3.Bucket(bucket_name).Object(Key).get()['Body'].read())
+#print(body)
+
+#@st.cache
+#def get_model():
+#    model = pickle.loads(body)
+#    return model
+
+#model = get_model()
 
 # Import packages
 import streamlit as st
