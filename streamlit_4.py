@@ -1,3 +1,30 @@
+import pickle
+import boto3
+import boto3.session
+
+
+cred = boto3.Session().get_credentials()
+ACCESS_KEY = cred.AKIAW25YCEHW7O7XV3AO
+SECRET_KEY = cred.rdHU1lLMKsbtkoTmt4pjOPyZ25z/AdRTmIPHyIV6
+
+s3client = boto3.client('s3',
+                        aws_access_key_id = ACCESS_KEY,
+                        aws_secret_access_key = SECRET_KEY
+                       )
+
+
+response = s3client.get_object(Bucket='resume-and-job-bucket',
+            Key='https://s3.console.aws.amazon.com/s3/buckets/resume-and-job-bucket/Resume-and-Job/GoogleNews.pkl')
+
+body = response['Body'].read()
+
+@st.cache
+def get_model():
+        model = pickle.loads(body)
+    return model
+
+model = get_model()
+
 # Import packages
 import streamlit as st
 import plotly.express as px
@@ -68,7 +95,7 @@ if st.checkbox('Show dataset'):
 
     #st.line_chart(chart_data)
 #---------------------------------
-# Upload the resume
+# Upload the job description
 def file_selector(folder_path='.'):
     filenames = os.listdir(folder_path)
     if filenames is not None:
@@ -84,16 +111,10 @@ if resumename is not None:
 
 
 #---------------------------------
-# Actual code
-@st.cache
-def get_model():
-    with open(f'GoogleNews.pkl', 'rb') as f:
-            model = pickle.load(f)
 
-    return model
-
-model = get_model()
 #---------------------------------
+
+#----------------------------------------
 # Parse input resume file
 def pdfparser(data):
 
@@ -126,8 +147,8 @@ def resumeConvertor(resumename):
 
     return resume
 #---------------------------------
-# Print resumename
-if st.checkbox('Show resume'):
+# Print job description
+if st.checkbox('Show job description'):
     st.write(resumeConvertor(resumename))
 
 #---------------------------------
@@ -153,31 +174,35 @@ def preprocess(text):
 def table_preprocess(filename):
 
     df = pd.read_csv(filename)
-    df.rename(columns = {'Unnamed: 0':'Job No.'}, inplace = True)
+    df.drop_duplicates(inplace = True)
+    #df.rename(columns = {'Unnamed: 0':'Job No.'}, inplace = True)
 
     # preprocess job title and description
-    for col in ['position', 'Job Description']:
+    for col in ['Category', 'Resume']:
         df[col] = df[col].astype(str)
         df[col+'_processed'] = df[col].apply(preprocess)
 
 
     # have a column for both title and descritpion
-    cols = ['position_processed', 'Job Description_processed']
+    cols = ['Category_processed', 'Resume_processed']
     df['title_and_desc'] = df[cols].apply(lambda x: ' '.join(x), axis=1)
 
 
     # Create a "csv" file using the job title, description, and company (with preprocessed text)
     # Choose final columns needed for analysis and save the scv file
-    df = df[['position_processed', 'Job Description_processed','Job Description','company', "position"]]
-    df.to_csv("clean_data.csv")
+    df = df[['Category_processed', 'Resume_processed','Category','Resume', "title_and_desc"]]
+    df.to_csv("clean_data_resume.csv")
 
     return df
+
 #---------------------------------
 # Vectorize the input resume
 
 
 #------------
 # 2- Vectorize the resume
+
+# Vectorize the input job description
 
 def Word2Vec_Vectorize(resumename):
 
@@ -190,7 +215,7 @@ def Word2Vec_Vectorize(resumename):
 
     stopwords = nltk.corpus.stopwords.words('english')
 
-    imp = ['java']
+    #imp = ['java']
     vec = []
 
 
@@ -201,7 +226,7 @@ def Word2Vec_Vectorize(resumename):
     i = 0
 
     for word in y.split():
-        if word.lower() not in stopwords and len(word)>2 and word not in imp:
+        if word.lower() not in stopwords and len(word)>2 and word in model:
             try:
                 x = model[word]
                 idx = myvec.get_features().index(word)
@@ -237,7 +262,7 @@ def Word2Vec_Vectorize(resumename):
     data = mean_vec
 
     data_df = pd.DataFrame(data)
-    data_df.to_csv('Vec resume.csv')
+    data_df.to_csv('Vec job.csv')
 
     return data
 #---------------------------
@@ -281,18 +306,19 @@ def plot_pca(mean_vec):
 def Similarity(filename, resumename):
 
 
-
-    df_main = pd.read_csv(filename)
-    df_main = df_main.drop(["Unnamed: 0"], axis = 1)
-    array_main = df_main.values
+    array_main = filename
+    #df_main = pd.read_csv(filename)
+    #df_main = df_main.drop(["Unnamed: 0"], axis = 1)
+    #array_main = df_main.values
 #-------------------------
-    dataset = "Data_Demo.csv"
+    dataset = "resume_dataset.csv"
     df = table_preprocess(dataset)
     # Create a list of job titles, descriptions, and companies
 
-    jd = df['Job Description'].tolist()
-    companies = df['company'].tolist()
-    positions = df['position'].tolist()
+    jd = df['Resume'].tolist()
+    categories = df['Category'].tolist()
+    print(len(categories))
+
 
     #-------------------------
     # Resume vector
@@ -325,46 +351,48 @@ def Similarity(filename, resumename):
             key += '{} '.format(x)
         key_list.append(key)
 
+    print(len(cos_dist))
     summary = pd.DataFrame({
-        'Company': companies,
-        'Postition': positions,
         'Cosine Distances': cos_dist,
-        #'Keywords': key_list,
-    'Job Description': jd
+        "Category": categories,
+        'Resume': jd
     })
 
     z =summary.sort_values('Cosine Distances', ascending=False)
-    z.to_csv('Summary' + str(filename)+ '.csv',encoding="utf-8")
+    z.to_csv('Summary_res_vec.csv',encoding="utf-8")
 
     #--------------------------------
     # Plot graphs
-    array_main = df_main.values
-    array_list = array_main.tolist()
+   # array_main = df_main.values
+   # array_list = array_main.tolist()
 
-    data_list = data[0]
-    array_list.append(data_list)
+    #data_list = data[0]
+    #array_list.append(data_list)
 
     #mean_vec = array_list
-    plot_pca(array_list)
+    #plot_pca(array_list)
 
-    plot_pca(array_list)
+    #plot_pca(array_list)
 
     return z.head()
-
-
-
-
  #===================================
  # Get result
-filename = "Vec Data_Demo.csv"
+@st.cache
+def get_vector():
+    with open(f'resume_vec.pkl', 'rb') as f:
+        vector = pickle.load(f)
+    return vector
+
+filename = get_vector()
+#filename = "Vec Data_Demo.csv"
 
 
 st.write("---------------------------")
-st.markdown("Top 5 positions are:")
+st.markdown("Top 5 resumes are:")
 
+#resumename = "Job_description5.pdf"
 result = Similarity(filename, resumename)
 
+result
 
-st.write(result)
-
-#------------------------------
+#-----------------------------------------
