@@ -90,7 +90,7 @@ st.write("")
 # A checkbox for the dataset
 # check box to show/hide a DF
 if st.checkbox('Show dataset'):
-    df = pd.read_csv("Data_Demo.csv")
+    df = pd.read_csv("resume_dataset.csv")
     st.dataframe(df)
 
     #st.line_chart(chart_data)
