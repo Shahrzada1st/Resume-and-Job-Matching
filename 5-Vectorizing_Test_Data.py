@@ -7,7 +7,7 @@ import gensim
 import pandas as pd
 
 
-os.chdir(r"C:\Users\khans\Insight\My code")
+
 
 import pickle
 with open(f'GoogleNews.pkl', 'rb') as f:
