@@ -56,7 +56,7 @@ def Word2Vec_Vectorize(resumename):
         #print(jd_vector)
 
     #---------------------------
-
+    # Calculate mean vec
     mean_vec = []
     for j in vec:
         mean = []
