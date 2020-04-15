@@ -1,5 +1,5 @@
 # ShortlistME
-## 1- Overview
+## 1-Overview
 ### ShorlistME is a natural language processing tool that identifies the best-matching resumes for open positions based on the content of job descriptions and resumes, rather than keywords only and/or job titles. The applied model and analysis is extensible to any business model that requires content analysis and comparsion based on the underlying meaning of the available contents. Specifically for this product, data scrapping, text preprocessing, and model application has been conducted by Python and the interface in built using Streamlit and deployed on an AWS EC2 instance. The dataset was hosted on AWS S3 bucket.
 
 ## 2 - Tech Stack
